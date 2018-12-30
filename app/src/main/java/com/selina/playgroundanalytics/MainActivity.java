@@ -12,6 +12,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.method.ScrollingMovementMethod;
@@ -19,15 +20,8 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
-
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ServerValue;
-
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.logging.Logger;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -40,8 +34,15 @@ public class MainActivity extends AppCompatActivity {
 
     ArrayList devicesArray;
 
+    private Handler myHandler;
+    private Runnable myRunnable;
+
+    boolean isStartScannning = false;
+
     private final static int REQUEST_ENABLE_BT = 1;
     private static final int PERMISSION_REQUEST_COARSE_LOCATION = 1;
+    private static final int REFRESH_TIME = 10000; //1000 milliseconds = 1 sec
+
 
     private static final String TAG = "MainActivity";
 
@@ -81,10 +82,36 @@ public class MainActivity extends AppCompatActivity {
         }
         CheckPermissonCoarseLocation();
 
+        myRunnable = new Runnable() {
+            @Override
+            public void run() {
+                if( isStartScannning) {
+                    NetworkController.postPeopleAmount(devicesArray.size());
+                }
+                myHandler.postDelayed(this, REFRESH_TIME); //Starts a periodically timer
+
+            }
+        };
 
     }
 
+    protected void onStart() {
+        super.onStart();
+        myHandler = new Handler();
+        myHandler.post(myRunnable);
 
+    }
+
+    protected void onStop() {
+        super.onStop();
+        myHandler.removeCallbacks(myRunnable); //Dismiss handler
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        myHandler.postDelayed(myRunnable, REFRESH_TIME);
+    }
 
     // Device scan callback.
     private ScanCallback leScanCallback = new ScanCallback() {
@@ -92,13 +119,13 @@ public class MainActivity extends AppCompatActivity {
         public void onScanResult(int callbackType, ScanResult result) {
             peripheralTextView.append("Device Name: " + result.getDevice().getName() + " rssi: " + result.getRssi() + "\n" + "Device #" + result.getDevice());
 
-//            if (result.getDevice().getName() == null) {
+            if (result.getDevice().getName() == null) {
                 if (!devicesArray.contains (result.getDevice()))
                 {
                     devicesArray.add(result.getDevice());
                 }
 
-//            }
+            }
 
             // auto scroll for text view
             final int scrollAmount = peripheralTextView.getLayout().getLineTop(peripheralTextView.getLineCount()) - peripheralTextView.getHeight();
@@ -135,6 +162,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void startScanning() {
+        isStartScannning = true;
         Log.d(TAG,"coarse location permission granted");
         peripheralTextView.setText("");
         startScanningButton.setVisibility(View.INVISIBLE);
@@ -157,14 +185,7 @@ public class MainActivity extends AppCompatActivity {
                     public void run() {
 
                         btScanner.stopScan(leScanCallback);
-                        FirebaseDatabase database = FirebaseDatabase.getInstance();
-                        DatabaseReference ref = database.getReference("playground-selina1");
-
-                String key = ref.push().getKey();
-                Map<String, Object> map = new HashMap<>();
-                map.put(key + "/time", ServerValue.TIMESTAMP);
-                map.put(key + "/visitors", devicesArray.size());
-                ref.updateChildren(map);
+                        NetworkController.postPeopleAmount(devicesArray.size());
             }
         });
     }
