@@ -87,6 +87,8 @@ public class MainActivity extends AppCompatActivity {
             public void run() {
                 if( isStartScannning) {
                     NetworkController.postPeopleAmount(devicesArray.size());
+                    peripheralTextView.setText( "\n" + "Sent data to server, Total Amount of people found: " + devicesArray.size());
+
                 }
                 myHandler.postDelayed(this, REFRESH_TIME); //Starts a periodically timer
 
@@ -117,7 +119,9 @@ public class MainActivity extends AppCompatActivity {
     private ScanCallback leScanCallback = new ScanCallback() {
         @Override
         public void onScanResult(int callbackType, ScanResult result) {
-            peripheralTextView.append("Device Name: " + result.getDevice().getName() + " rssi: " + result.getRssi() + "\n" + "Device #" + result.getDevice());
+            peripheralTextView.setText("rssi: " + result.getRssi() + "\n" + "Device #" + result.getDevice());
+            peripheralTextView.append("\nCurrennt total amount of people :" + devicesArray.size());
+
 
             if (result.getDevice().getName() == null) {
                 if (!devicesArray.contains (result.getDevice()))
@@ -163,6 +167,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void startScanning() {
         isStartScannning = true;
+        devicesArray = new ArrayList();
         Log.d(TAG,"coarse location permission granted");
         peripheralTextView.setText("");
         startScanningButton.setVisibility(View.INVISIBLE);
@@ -177,7 +182,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void stopScanning() {
         Log.d(TAG,"coarse location permission granted");
-        peripheralTextView.append("Stopped Scanning, have " + devicesArray.size());
+        peripheralTextView.setText( "\n" + "Stopped Scanning, Total Amount of people found: " + devicesArray.size());
         startScanningButton.setVisibility(View.VISIBLE);
         stopScanningButton.setVisibility(View.INVISIBLE);
         AsyncTask.execute(new Runnable() {

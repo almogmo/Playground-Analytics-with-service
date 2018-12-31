@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class NetworkController {
 
-
+//Send Time and visitors # to Firebase
 public static void postPeopleAmount(int size) {
 
     FirebaseDatabase database = FirebaseDatabase.getInstance();
