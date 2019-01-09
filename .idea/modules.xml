@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/Selina-Playground-Analytics.iml" filepath="$PROJECT_DIR$/Selina-Playground-Analytics.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Selina-Playground-Analytics-with-service.iml" filepath="$PROJECT_DIR$/Selina-Playground-Analytics-with-service.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
